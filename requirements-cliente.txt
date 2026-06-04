@@ -1,0 +1,4 @@
+requests>=2.32
+watchdog>=6.0
+websocket-client>=1.8
+python-dotenv>=1.0
