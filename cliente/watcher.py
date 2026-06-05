@@ -41,7 +41,7 @@ class SyncEventHandler(FileSystemEventHandler):
             log.info("Arquivo criado: %s", event.src_path)
             threading.Thread(target=self.on_change, args=(Path(event.src_path),), daemon=True).start()
 
-   def on_modified(self, event: FileSystemEvent):
+    def on_modified(self, event: FileSystemEvent):
         if event.is_directory:
             return
         if self._should_process(event.src_path):
@@ -52,7 +52,7 @@ class SyncEventHandler(FileSystemEventHandler):
         if event.is_directory:
             return
         if hasattr(event, 'dest_path') and self._should_process(event.dest_path):
-            log.info("Arquivo movido/salvo (Linux): %s", event.dest_path)
+            log.info("Arquivo movido/salvo (Linux Atomic Save): %s", event.dest_path)
             threading.Thread(target=self.on_change, args=(Path(event.dest_path),), daemon=True).start()
 
     def on_deleted(self, event: FileSystemEvent):
