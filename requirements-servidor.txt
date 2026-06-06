@@ -3,3 +3,4 @@ uvicorn>=0.34
 python-dotenv>=1.0
 python-multipart>=0.0.18
 websockets>=14
+fastapi-mail>=1.4.1

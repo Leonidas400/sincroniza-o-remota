@@ -5,6 +5,8 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, Header, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
+from fastapi import BackgroundTasks
+from servidor.mailer import enviar_notificacao_email
 
 from servidor.config import API_KEY, MAX_FILE_SIZE, SERVER_HOST, SERVER_PORT, STORAGE_DIR
 from servidor.models import FileInfo, UploadResponse, WSMessage
@@ -48,7 +50,7 @@ async def get_files(x_api_key: str = Header()):
 
 
 @app.post("/upload", response_model=UploadResponse)
-async def upload(file: UploadFile = File(...), x_api_key: str = Header(), x_device_id: str = Header(default="")):
+async def upload(background_tasks: BackgroundTasks,file: UploadFile = File(...), x_api_key: str = Header(), x_device_id: str = Header(default="")):
     check_api_key(x_api_key)
 
     content = await file.read()
@@ -61,6 +63,8 @@ async def upload(file: UploadFile = File(...), x_api_key: str = Header(), x_devi
 
     msg = WSMessage(type="FILE_UPDATED", filename=filename, sender=x_device_id)
     await broadcast(msg, exclude=x_device_id)
+
+    background_tasks.add_task(enviar_notificacao_email, filename, x_device_id)
 
     return UploadResponse(
         filename=info["filename"],
