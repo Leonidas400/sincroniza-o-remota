@@ -17,17 +17,14 @@ conf = ConnectionConfig(
 )
 
 async def enviar_notificacao_email(filename: str, device_id: str):
-
     print(f"\n[DEBUG EMAIL] ---> Iniciando envio para o arquivo: {filename} <--- \n")
     
     if not SMTP_USER or not EMAIL_DESTINO:
         print("[DEBUG EMAIL] ---> ERRO: Credenciais SMTP estão vazias no .env! <---")
         log.warning("Credenciais SMTP não configuradas. Pulando envio de e-mail.")
         return
-    
-    if not SMTP_USER or not EMAIL_DESTINO:
-        log.warning("Credenciais SMTP não configuradas. Pulando envio de e-mail.")
-        return
+
+    lista_emails = [email.strip() for email in EMAIL_DESTINO.split(",") if email.strip()]
 
     html = f"""
     <h3>Atualização de Arquivo</h3>
@@ -37,7 +34,7 @@ async def enviar_notificacao_email(filename: str, device_id: str):
 
     message = MessageSchema(
         subject=f"Sync Alert: {filename} atualizado",
-        recipients=[EMAIL_DESTINO],
+        recipients=lista_emails, 
         body=html,
         subtype=MessageType.html
     )
