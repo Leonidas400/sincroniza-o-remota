@@ -51,9 +51,18 @@ class SyncEventHandler(FileSystemEventHandler):
     def on_moved(self, event):
         if event.is_directory:
             return
-        if hasattr(event, 'dest_path') and self._should_process(event.dest_path):
-            log.info("Arquivo movido/salvo (Linux Atomic Save): %s", event.dest_path)
-            threading.Thread(target=self.on_change, args=(Path(event.dest_path),), daemon=True).start()
+            
+        src_path = Path(event.src_path)
+        dest_path = Path(event.dest_path)
+
+        if not src_path.name.startswith(".") and src_path.suffix != ".tmp":
+            log.info("Renomeio detectado - Apagando antigo no servidor: %s", src_path.name)
+            if self.on_delete:
+                threading.Thread(target=self.on_delete, args=(src_path.name,), daemon=True).start()
+
+        if self._should_process(event.dest_path):
+            log.info("Renomeio detectado - Enviando novo para o servidor: %s", dest_path.name)
+            threading.Thread(target=self.on_change, args=(dest_path,), daemon=True).start()
 
     def on_deleted(self, event: FileSystemEvent):
         if event.is_directory:
