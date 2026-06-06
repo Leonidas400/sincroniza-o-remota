@@ -7,13 +7,13 @@ log = logging.getLogger("server.mailer")
 conf = ConnectionConfig(
     MAIL_USERNAME=SMTP_USER,
     MAIL_PASSWORD=SMTP_PASSWORD,
-    MAIL_FROM=SMTP_USER,
+    MAIL_FROM="nao-responda@meumvp.com", 
     MAIL_PORT=SMTP_PORT,
     MAIL_SERVER=SMTP_SERVER,
     MAIL_STARTTLS=True,
     MAIL_SSL_TLS=False,
     USE_CREDENTIALS=True,
-    VALIDATE_CERTS=True
+    VALIDATE_CERTS=False
 )
 
 async def enviar_notificacao_email(filename: str, device_id: str):
