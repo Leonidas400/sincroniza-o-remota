@@ -41,7 +41,7 @@ def upload_file(filepath: Path) -> dict | None:
 
 def download_file(filename: str, dest: Path) -> bool:
     dest.parent.mkdir(parents=True, exist_ok=True)
-    tmp = dest.with_suffix(dest.suffix + ".tmp")
+    tmp = dest.with_suffix(".sync_tmp")
 
     for attempt in range(MAX_RETRIES):
         try:

@@ -22,7 +22,7 @@ class SyncEventHandler(FileSystemEventHandler):
 
     def _should_process(self, path: str) -> bool:
         p = Path(path)
-        if p.suffix == ".tmp":
+        if p.suffix == ".sync_tmp": 
             return False
         if p.name.startswith("."):
             return False
@@ -55,21 +55,33 @@ class SyncEventHandler(FileSystemEventHandler):
         src_path = Path(event.src_path)
         dest_path = Path(event.dest_path)
 
-        if not src_path.name.startswith(".") and src_path.suffix != ".tmp":
+        if src_path.suffix == ".sync_tmp":
+            log.info("Download concluído (ignorado pelo watcher): %s", dest_path.name)
+            return
+
+        if not src_path.name.startswith(".") and src_path.suffix != ".sync_tmp":
             log.info("Renomeio detectado - Apagando antigo no servidor: %s", src_path.name)
             if self.on_delete:
                 threading.Thread(target=self.on_delete, args=(src_path.name,), daemon=True).start()
 
         if self._should_process(event.dest_path):
             log.info("Renomeio detectado - Enviando novo para o servidor: %s", dest_path.name)
-            threading.Thread(target=self.on_change, args=(dest_path,), daemon=True).start()
+            if self.on_change:
+                threading.Thread(target=self.on_change, args=(dest_path,), daemon=True).start()
 
     def on_deleted(self, event: FileSystemEvent):
         if event.is_directory:
             return
-        p = Path(event.src_path)
-        if p.suffix == ".tmp" or p.name.startswith("."):
+            
+        time.sleep(0.5)
+        if Path(event.src_path).exists():
+            log.info("Falso delete ignorado (Atomic Save detectado): %s", event.src_path)
             return
+            
+        p = Path(event.src_path)
+        if p.suffix == ".sync_tmp" or p.name.startswith("."):
+            return
+            
         log.info("Arquivo deletado: %s", event.src_path)
         if self.on_delete:
             threading.Thread(target=self.on_delete, args=(p.name,), daemon=True).start()
